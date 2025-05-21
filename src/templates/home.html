@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Home - My Personal Website{% endblock %}
+
+{% block content %}
+<div class="gradient-bg rounded-lg p-8 flex flex-col items-center justify-center min-h-[80vh] relative overflow-hidden">
+    <h1 class="text-5xl font-extrabold mb-6 animate-fade-in-down">This is YoohNing's space!!!</h1>
+    <p class="text-2xl mb-8 animate-fade-in-up">Explore my photography, skills, and more!</p>
+    <p class="text-2xl mb-8 animate-fade-in-up">More projects are being cooked!</p>
+    <div class="flex space-x-6">
+        <a href="/photography" class="px-6 py-3 bg-sunset text-primary font-bold rounded-lg shadow-lg hover:scale-105 transition-transform duration-300 animate-fade-in-up">Photography</a>
+        <a href="/about" class="px-6 py-3 bg-sky text-primary font-bold rounded-lg shadow-lg hover:scale-105 transition-transform duration-300 animate-fade-in-up">About Me</a>
+        <a href="/skills" class="px-6 py-3 bg-white text-primary font-bold rounded-lg shadow-lg hover:scale-105 transition-transform duration-300 animate-fade-in-up">Skills</a>
+    </div>
+    <!-- 流星动画 -->
+    <div id="shooting-stars"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 渐入动画
+document.querySelectorAll('.animate-fade-in-down').forEach(el => {
+    el.style.opacity = 0;
+    setTimeout(() => {
+        el.style.transition = 'opacity 1s, transform 1s';
+        el.style.opacity = 1;
+        el.style.transform = 'translateY(0)';
+    }, 200);
+});
+document.querySelectorAll('.animate-fade-in-up').forEach((el, i) => {
+    el.style.opacity = 0;
+    el.style.transform = 'translateY(40px)';
+    setTimeout(() => {
+        el.style.transition = 'opacity 1s, transform 1s';
+        el.style.opacity = 1;
+        el.style.transform = 'translateY(0)';
+    }, 400 + i * 200);
+});
+
+// 流星动画
+function createShootingStar() {
+    const star = document.createElement('div');
+    star.className = 'shooting-star';
+    star.style.top = Math.random() * 60 + '%';
+    star.style.left = Math.random() * 100 + '%';
+    document.getElementById('shooting-stars').appendChild(star);
+    setTimeout(() => star.remove(), 2500);
+}
+// 让流星更密集
+setInterval(createShootingStar, 600); // 原来是1200
+</script>
+<style>
+    .shooting-star {
+        position: absolute;
+        width: 2px; /* 更宽 */
+        height: 180px; /* 更长 */
+        background: linear-gradient(180deg, #fff, transparent);
+        opacity: 0.8;
+        transform: rotate(-20deg);
+        animation: shooting 2.5s linear forwards;
+        z-index: 10;
+    }
+    @keyframes shooting {
+        0% { opacity: 0.8; transform: translateY(0) rotate(-20deg);}
+        100% { opacity: 0; transform: translateY(300px) rotate(-20deg);} /* 距离更远 */
+    }
+    </style>
+{% endblock %}

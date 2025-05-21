@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}About Me - My Personal Website{% endblock %}
+
+{% block content %}
+<div class="gradient-bg rounded-lg p-8 flex flex-col md:flex-row items-center gap-8">
+    <img src="/static/images/avatar.png" alt="Avatar" class="w-40 h-40 rounded-full shadow-lg border-4 border-sunset animate-avatar-pop">
+    <div>
+        <h1 class="text-4xl font-bold mb-4">Hi, I'm YooooohNing</h1>
+        <p class="text-lg leading-relaxed mb-4">Full Stack Developer | Photographer | Music Producer<br>
+        <br>
+        Gaming Enthusiast × Anime Lover × Web3 Knowledge Miner × Nature Enthusiast </p>
+        <div class="flex space-x-4 mt-4">
+            <a href="liam_zhang77@foxmail.com" class="text-sky hover:underline flex items-center">
+                <span class="mr-1">✉️</span>Email
+            </a>
+            <a href="https://github.com/LiamZzTeo" target="_blank" class="text-sunset hover:underline flex items-center">
+                <span class="mr-1">🐙</span>GitHub
+            </a>
+            <a href="https://www.instagram.com/yoohning/" target="_blank" class="text-pink-500 hover:underline flex items-center">
+                <span class="mr-1">📸</span>Instagram
+            </a>
+            <a href="https://space.bilibili.com/386148044?spm_id_from=333.1387.0.0" target="_blank" class="text-blue-400 hover:underline flex items-center">
+                <span class="mr-1">📺</span>Bilibili
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 头像弹跳动画
+document.querySelector('.animate-avatar-pop').animate([
+    { transform: 'scale(0.8)' },
+    { transform: 'scale(1.1)' },
+    { transform: 'scale(1)' }
+], {
+    duration: 800,
+    easing: 'ease-out'
+});
+</script>
+{% endblock %}
