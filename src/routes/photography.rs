@@ -10,13 +10,13 @@ struct Photo {
 
 pub async fn photography(tera: web::Data<Tera>) -> impl Responder {
     let photos = vec![
-        Photo { filename: "photo2.jpg", orientation: "horizontal" },
-        Photo { filename: "photo3.jpg", orientation: "vertical" },
-        Photo { filename: "photo4.jpg", orientation: "vertical" },
-        Photo { filename: "photo5.jpg", orientation: "vertical" },
-        Photo { filename: "photo6.jpg", orientation: "vertical" },
-        Photo { filename: "photo7.jpg", orientation: "vertical" },
-        Photo { filename: "photo8.jpg", orientation: "vertical" },
+        Photo { filename: "photo2.jpeg", orientation: "horizontal" },
+        Photo { filename: "photo3.jpeg", orientation: "vertical" },
+        Photo { filename: "photo4.jpeg", orientation: "vertical" },
+        Photo { filename: "photo5.jpeg", orientation: "vertical" },
+        Photo { filename: "photo6.jpeg", orientation: "vertical" },
+        Photo { filename: "photo7.jpeg", orientation: "vertical" },
+        Photo { filename: "photo8.jpeg", orientation: "vertical" },
     ];
 
     let mut context = tera::Context::new();
