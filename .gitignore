@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Rust
 /target
 **/*.rs.bk
@@ -47,3 +48,6 @@ personal_info.db
 # OS
 .DS_Store
 Thumbs.db
+=======
+/target
+>>>>>>> 08dbea0c5cefd6c05ded0e13d413e1fbfc5c00ab

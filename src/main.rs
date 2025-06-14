@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 use actix_web::{web, App, HttpServer};
 use actix_files as actix_fs;
 use tera::Tera;
@@ -55,10 +56,30 @@ async fn main() -> std::io::Result<()> {
     );
 
     HttpServer::new(move || {
+=======
+use actix_web::{web, App, HttpServer, Responder, HttpResponse};
+use actix_files as fs;
+use tera::Tera;
+use std::path::Path;
+
+mod routes;
+mod models;
+
+use routes::{home, photography, about, skills};
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+
+    println!("Server starting at http://127.0.0.1:8080");
+
+    HttpServer::new(|| {
+>>>>>>> 08dbea0c5cefd6c05ded0e13d413e1fbfc5c00ab
         let tera = Tera::new(concat!(env!("CARGO_MANIFEST_DIR"), "/src/templates/**/*.html")).unwrap();
 
         App::new()
             .app_data(web::Data::new(tera))
+<<<<<<< HEAD
             .app_data(web::Data::new(pool.clone()))
             .app_data(rag_service.clone())
             // API路由
@@ -67,12 +88,18 @@ async fn main() -> std::io::Result<()> {
             // 静态文件
             .service(actix_fs::Files::new("/static", concat!(env!("CARGO_MANIFEST_DIR"), "/src/static")).show_files_listing())
             // 页面路由
+=======
+            .service(fs::Files::new("/static", concat!(env!("CARGO_MANIFEST_DIR"), "/src/static")).show_files_listing())
+>>>>>>> 08dbea0c5cefd6c05ded0e13d413e1fbfc5c00ab
             .route("/", web::get().to(home::home))
             .route("/photography", web::get().to(photography::photography))
             .route("/about", web::get().to(about::about))
             .route("/skills", web::get().to(skills::skills))
+<<<<<<< HEAD
             .route("/admin/login", web::get().to(admin::login_page))
             .route("/admin/dashboard", web::get().to(admin::dashboard_page))
+=======
+>>>>>>> 08dbea0c5cefd6c05ded0e13d413e1fbfc5c00ab
     })
     .bind("127.0.0.1:8080")?
     .run()
