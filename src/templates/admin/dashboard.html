@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- 顶部导航栏 -->
+    <div class="flex justify-between items-center mb-8">
+        <div class="flex items-center space-x-4">
+            <h1 class="text-3xl font-bold text-white">管理员控制面板</h1>
+            <span id="last-login-time" class="text-white/60 text-sm"></span>
+        </div>
+        <div class="flex space-x-4">
+            <button id="refresh-btn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                刷新数据
+            </button>
+            <button id="logout-btn" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors">
+                退出登录
+            </button>
+        </div>
+    </div>
+
+    <!-- 主要内容区域 -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 左侧：添加新内容 -->
+        <div class="lg:col-span-1">
+            <div class="bg-white/10 rounded-lg p-6">
+                <h2 class="text-xl font-bold text-white mb-4">添加新内容</h2>
+                <form id="add-content-form" class="space-y-4">
+                    <div>
+                        <label for="title" class="block text-white mb-2">标题</label>
+                        <input type="text" id="title" name="title" 
+                               class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-sunset"
+                               required>
+                    </div>
+                    <div>
+                        <label for="content_type" class="block text-white mb-2">内容类型</label>
+                        <select id="content_type" name="content_type"
+                                class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-sunset"
+                                required>
+                            <option value="personal">个人信息</option>
+                            <option value="skills">技能</option>
+                            <option value="experience">经历</option>
+                            <option value="projects">项目</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="content" class="block text-white mb-2">内容</label>
+                        <textarea id="content" name="content" rows="6"
+                                class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-sunset"
+                                required></textarea>
+                    </div>
+                    <div>
+                        <label for="tags" class="block text-white mb-2">标签（用逗号分隔）</label>
+                        <input type="text" id="tags" name="tags" 
+                               class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-sunset"
+                               placeholder="例如：rust,react,ai">
+                    </div>
+                    <div>
+                        <label for="metadata" class="block text-white mb-2">元数据（JSON格式）</label>
+                        <textarea id="metadata" name="metadata" rows="3"
+                                class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-sunset"
+                                placeholder='{"key": "value"}'></textarea>
+                    </div>
+                    <button type="submit" 
+                            class="w-full bg-sunset text-white px-6 py-2 rounded-lg hover:bg-sunset/80 transition-colors">
+                        添加内容
+                    </button>
+                </form>
+            </div>
+
+        </div>
+
+        <!-- 右侧：内容列表 -->
+        <div class="lg:col-span-2">
+            <div class="bg-white/10 rounded-lg p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-white">内容管理</h2>
+                    <div class="flex space-x-2">
+                        <input type="text" id="search-input" 
+                               class="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-sunset"
+                               placeholder="搜索内容...">
+                        <select id="filter-category"
+                                class="bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-sunset">
+                            <option value="">所有分类</option>
+                            <option value="personal">个人信息</option>
+                            <option value="skills">技能</option>
+                            <option value="experience">经历</option>
+                            <option value="projects">项目</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="content-list" class="space-y-4 max-h-[800px] overflow-y-auto pr-2">
+                    <!-- 内容将通过JavaScript动态加载 -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+// 在 script 标签开始处添加
+let isEditing = false;  // 添加这个变量来跟踪编辑状态
+let currentEditId = null;  // 添加这个变量来存储当前编辑的ID
+// 检查登录状态
+async function checkAuth() {
+    try {
+        const response = await fetch('/api/admin/check-auth', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
+            }
+        });
+        if (!response.ok) {
+            window.location.href = '/admin/login';
+        } else {
+            const data = await response.json();
+            document.getElementById('last-login-time').textContent = `上次登录：${data.last_login}`;
+        }
+    } catch (error) {
+        window.location.href = '/admin/login';
+    }
+}
+
+// 加载内容列表
+async function loadContent() {
+    try {
+        const token = localStorage.getItem('admin_token');
+        if (!token) {
+            console.error('未找到 token');
+            window.location.href = '/admin/login';
+            return;
+        }
+
+        console.log('开始加载内容，token:', token);
+
+        const searchQuery = document.getElementById('search-input').value;
+        const contentTypeFilter = document.getElementById('filter-category').value;
+        
+        const url = `/api/admin/content?search=${encodeURIComponent(searchQuery)}&content_type=${encodeURIComponent(contentTypeFilter)}`;
+        console.log('请求URL:', url);
+
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log('响应状态:', response.status);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('服务器响应错误:', errorText);
+            throw new Error(`服务器响应错误: ${response.status} ${errorText}`);
+        }
+
+        const data = await response.json();
+        console.log('获取到的数据:', data);
+        
+        const contentList = document.getElementById('content-list');
+        if (!contentList) {
+            console.error('未找到 content-list 元素');
+            return;
+        }
+
+        contentList.innerHTML = data.map(item => `
+            <div class="bg-white/5 p-4 rounded-lg hover:bg-white/10 transition-colors">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-lg font-semibold text-white">${item.title}</h3>
+                        <div class="flex space-x-2 mt-1">
+                            ${item.tags ? item.tags.split(',').map(tag => `
+                                <span class="text-xs bg-white/20 text-white px-2 py-1 rounded">${tag.trim()}</span>
+                            `).join('') : ''}
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="editContent('${item.id}')" 
+                                class="text-blue-500 hover:text-blue-400">
+                            编辑
+                        </button>
+                        <button onclick="deleteContent('${item.id}')" 
+                                class="text-red-500 hover:text-red-400">
+                            删除
+                        </button>
+                    </div>
+                </div>
+                <p class="text-white/80 mt-2">${item.content}</p>
+                <div class="flex justify-between items-center mt-2 text-sm text-white/60">
+                    <span>类型: ${item.content_type}</span>
+                    <span>创建时间: ${new Date(item.created_at).toLocaleString()}</span>
+                </div>
+                ${item.metadata && item.metadata !== '{}' ? `
+                    <div class="mt-2 text-sm text-white/60">
+                        <details>
+                            <summary class="cursor-pointer">元数据</summary>
+                            <pre class="mt-2 p-2 bg-white/5 rounded">${JSON.stringify(JSON.parse(item.metadata), null, 2)}</pre>
+                        </details>
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('加载内容失败:', error);
+        showNotification(`加载内容失败: ${error.message}`, 'error');
+    }
+}
+
+
+// 删除内容
+async function deleteContent(id) {
+    if (!confirm('确定要删除这条内容吗？')) return;
+
+    try {
+        const response = await fetch(`/api/admin/content/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
+            }
+        });
+
+        if (response.ok) {
+            showNotification('删除成功', 'success');
+            loadContent();
+        } else {
+            const data = await response.json();
+            showNotification(data.error || '删除失败', 'error');
+        }
+    } catch (error) {
+        showNotification('删除失败，请重试', 'error');
+    }
+}
+
+// 添加编辑功能
+async function editContent(id) {
+    try {
+        console.log('开始编辑内容 ID:', id);
+        
+        const response = await fetch(`/api/admin/content/${id}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('获取内容失败:', errorText);
+            throw new Error(`获取内容失败: ${response.status} ${errorText}`);
+        }
+
+        const content = await response.json();
+        console.log('获取到的内容:', content);
+        
+        // 设置编辑状态
+        isEditing = true;
+        currentEditId = id;
+        
+        // 填充表单
+        document.getElementById('title').value = content.title;
+        document.getElementById('content_type').value = content.content_type;
+        document.getElementById('content').value = content.content;
+        document.getElementById('tags').value = content.tags;
+        document.getElementById('metadata').value = content.metadata;
+
+        // 修改提交按钮文本
+        const submitButton = document.querySelector('#add-content-form button[type="submit"]');
+        submitButton.textContent = '更新内容';
+        
+        // 滚动到表单位置
+        document.getElementById('add-content-form').scrollIntoView({ behavior: 'smooth' });
+    } catch (error) {
+        console.error('获取内容失败:', error);
+        showNotification(`获取内容失败: ${error.message}`, 'error');
+    }
+}
+
+// 重置表单状态
+function resetFormState() {
+    isEditing = false;
+    currentEditId = null;
+    const form = document.getElementById('add-content-form');
+    form.reset();
+    const submitButton = document.querySelector('#add-content-form button[type="submit"]');
+    submitButton.textContent = '添加内容';
+}
+
+// 修改表单提交处理
+document.getElementById('add-content-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        title: document.getElementById('title').value,
+        content_type: document.getElementById('content_type').value,
+        content: document.getElementById('content').value,
+        tags: document.getElementById('tags').value,
+        metadata: document.getElementById('metadata').value || '{}'
+    };
+
+    try {
+        // 验证JSON格式
+        try {
+            JSON.parse(formData.metadata);
+        } catch (e) {
+            showNotification('元数据必须是有效的JSON格式', 'error');
+            return;
+        }
+
+        let response;
+        if (isEditing && currentEditId) {
+            // 更新现有内容
+            response = await fetch(`/api/admin/content/${currentEditId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                showNotification('内容更新成功', 'success');
+                resetFormState();  // 重置表单状态
+                loadContent();
+            } else {
+                const data = await response.json();
+                showNotification(data.error || '更新失败', 'error');
+            }
+        } else {
+            // 添加新内容
+            response = await fetch('/api/admin/content', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                showNotification('内容添加成功', 'success');
+                this.reset();
+                loadContent();
+            } else {
+                const data = await response.json();
+                showNotification(data.error || '添加失败', 'error');
+            }
+        }
+    } catch (error) {
+        console.error('操作失败:', error);
+        showNotification('操作失败，请重试', 'error');
+    }
+});
+
+// 添加取消编辑按钮
+const addContentForm = document.getElementById('add-content-form');
+const cancelEditButton = document.createElement('button');
+cancelEditButton.type = 'button';
+cancelEditButton.className = 'w-full bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors mt-2';
+cancelEditButton.textContent = '取消编辑';
+cancelEditButton.style.display = 'none';
+cancelEditButton.onclick = function() {
+    resetFormState();
+    this.style.display = 'none';
+};
+addContentForm.appendChild(cancelEditButton);
+
+// 显示通知
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 p-4 rounded-lg text-white ${
+        type === 'success' ? 'bg-green-500' : 
+        type === 'error' ? 'bg-red-500' : 
+        'bg-blue-500'
+    }`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+
+// 搜索和筛选
+document.getElementById('search-input').addEventListener('input', debounce(loadContent, 300));
+document.getElementById('filter-category').addEventListener('change', loadContent);
+
+// 防抖函数
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// 刷新按钮
+document.getElementById('refresh-btn').addEventListener('click', loadContent);
+
+// 退出登录
+document.getElementById('logout-btn').addEventListener('click', async function() {
+    try {
+        await fetch('/api/admin/logout', { 
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('admin_token')}`
+            }
+        });
+        localStorage.removeItem('admin_token');
+        window.location.href = '/admin/login';
+    } catch (error) {
+        showNotification('退出失败，请重试', 'error');
+    }
+});
+
+// 页面加载时检查登录状态并加载内容
+checkAuth();
+loadContent();
+</script>
+{% endblock %}

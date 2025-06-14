@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center">
+    <div class="bg-white/10 p-8 rounded-lg shadow-lg w-full max-w-md">
+        <h2 class="text-2xl font-bold text-white mb-6 text-center">管理员登录</h2>
+        <form id="login-form" class="space-y-4">
+            <div>
+                <label for="username" class="block text-white mb-2">用户名</label>
+                <input type="text" id="username" name="username" 
+                       class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-sunset">
+            </div>
+            <div>
+                <label for="password" class="block text-white mb-2">密码</label>
+                <input type="password" id="password" name="password" 
+                       class="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-sunset">
+            </div>
+            <button type="submit" 
+                    class="w-full bg-sunset text-white px-6 py-2 rounded-lg hover:bg-sunset/80 transition-colors">
+                登录
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+// 显示通知函数
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 p-4 rounded-lg text-white ${
+        type === 'success' ? 'bg-green-500' : 
+        type === 'error' ? 'bg-red-500' : 
+        'bg-blue-500'
+    }`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 3000);
+}
+
+// 登录表单处理
+document.getElementById('login-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    try {
+        const response = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            localStorage.setItem('admin_token', data.token);
+            showNotification('登录成功', 'success');
+            window.location.href = '/admin/dashboard';
+        } else {
+            showNotification(data.error || '登录失败', 'error');
+        }
+    } catch (error) {
+        console.error('登录失败:', error);
+        showNotification('登录失败，请重试', 'error');
+    }
+});
+</script>
+{% endblock %}

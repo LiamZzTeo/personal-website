@@ -1,0 +1,35 @@
+{
+    "contents": [
+      {
+        "title": "Rust学习日记",
+        "content_type": "diary",
+        "content": "今天深入学习了Rust的所有权系统，特别是关于借用检查器的部分。通过实践，我更好地理解了为什么Rust能够保证内存安全。",
+        "tags": ["rust", "学习", "编程"],
+        "metadata": {
+          "mood": "productive",
+          "location": "home",
+          "weather": "sunny"
+        }
+      },
+      {
+        "title": "Web开发技能总结",
+        "content_type": "skill",
+        "content": "我擅长使用React和TypeScript进行前端开发，同时也熟悉Rust后端开发。在项目中，我注重代码质量和性能优化。",
+        "tags": ["前端", "后端", "typescript", "rust"],
+        "metadata": {
+          "years_of_experience": 3,
+          "proficiency_level": "advanced"
+        }
+      },
+      {
+        "title": "项目经验：个人网站开发",
+        "content_type": "experience",
+        "content": "使用Rust和React开发了个人网站，实现了响应式设计和动态内容管理。项目中使用了很多现代Web技术。",
+        "tags": ["项目", "rust", "react", "web开发"],
+        "metadata": {
+          "project_duration": "3个月",
+          "technologies": ["Rust", "React", "TypeScript", "SQLite"]
+        }
+      }
+    ]
+  }

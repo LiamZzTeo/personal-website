@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Photography - YoohNing{% endblock %}
+
+{% block content %}
+<div class="photo-gradient-bg rounded-lg p-8 relative overflow-hidden">
+    <h1 class="text-4xl font-bold mb-8 text-center">My Photography</h1>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {% for photo in photos %}
+        <div class="{% if photo.orientation == 'horizontal' %}md:col-span-3 {% endif %} 
+            bg-primary rounded-lg overflow-hidden shadow-lg flex items-center justify-center 
+            transition-transform duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer photo-card"
+            onclick="openPhotoLightbox('/static/images/{{ photo.filename }}', this)"
+        >
+            <img 
+                src="/static/images/{{ photo.filename }}" 
+                alt="Photography" 
+                class="w-full h-auto object-cover opacity-0 transition-opacity duration-700"
+                onload="this.style.opacity=1"
+                {% if photo.orientation == 'horizontal' %}style="aspect-ratio:3/2;"{% else %}style="aspect-ratio:2/3;"{% endif %}
+            >
+            <span class="ripple"></span>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Lightbox Modal -->
+<div id="photo-lightbox" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden" onclick="closePhotoLightbox()">
+    <img id="photo-lightbox-img" src="" class="max-h-[80vh] max-w-[90vw] rounded-lg shadow-2xl border-4 border-white" />
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 渐变背景动画（无太阳）
+document.querySelector('.photo-gradient-bg').style.background = 'linear-gradient(135deg, rgb(192,142,102), rgb(0,150,191))';
+document.querySelector('.photo-gradient-bg').style.backgroundSize = '200% 200%';
+document.querySelector('.photo-gradient-bg').animate([
+    { backgroundPosition: '0% 50%' },
+    { backgroundPosition: '100% 50%' },
+    { backgroundPosition: '0% 50%' }
+], {
+    duration: 12000,
+    iterations: Infinity
+});
+
+// 图片点击波纹效果
+document.querySelectorAll('.photo-card').forEach(card => {
+    card.addEventListener('click', function(e) {
+        const ripple = this.querySelector('.ripple');
+        ripple.classList.remove('show');
+        const rect = this.getBoundingClientRect();
+        ripple.style.left = (e.clientX - rect.left) + 'px';
+        ripple.style.top = (e.clientY - rect.top) + 'px';
+        ripple.classList.add('show');
+    });
+});
+
+// 图片点击全屏预览
+function openPhotoLightbox(src, el) {
+    event.stopPropagation();
+    document.getElementById('photo-lightbox-img').src = src;
+    document.getElementById('photo-lightbox').classList.remove('hidden');
+}
+function closePhotoLightbox() {
+    document.getElementById('photo-lightbox').classList.add('hidden');
+    document.getElementById('photo-lightbox-img').src = '';
+}
+</script>
+<style>
+.photo-gradient-bg {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, rgb(192, 142, 102), rgb(0, 150, 191));
+    background-size: 200% 200%;
+    /* 动画由JS控制 */
+}
+
+/* 波纹动画 */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: scale(0);
+    background: rgba(255,255,255,0.4);
+    pointer-events: none;
+    width: 120px;
+    height: 120px;
+    left: 50%;
+    top: 50%;
+    opacity: 0;
+    transition: transform 0.5s, opacity 0.5s;
+    z-index: 2;
+}
+.ripple.show {
+    transform: scale(2.5);
+    opacity: 0.7;
+    transition: transform 0.5s, opacity 0.5s;
+}
+.photo-card {
+    position: relative;
+    overflow: hidden;
+}
+</style>
+{% endblock %}

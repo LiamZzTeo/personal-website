@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}YooooohNing{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: 'rgb(13, 43, 51)',
+                        sunset: 'rgb(192, 142, 102)',
+                        sky: 'rgb(0, 150, 191)',
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+.gradient-bg::before {
+    content: '';
+    position: absolute;
+    left: 30%;
+    top: 50%;
+    width: 180px;   /* 更大 */
+    height: 180px;  /* 更大 */
+    background: radial-gradient(circle, 
+        rgba(255, 230, 180, 0.85) 0%, 
+        rgba(255, 200, 120, 0.55) 30%, 
+        rgba(192, 142, 102, 0.35) 55%, 
+        rgba(192, 142, 102, 0.10) 85%, 
+        rgba(192, 142, 102, 0.01) 100%
+    );
+    border-radius: 50%;
+    filter: blur(64px); /* 更大模糊 */
+    box-shadow: 0 0 240px 120px rgba(192,142,102,0.18); /* 更大光晕 */
+    transform: translate(-50%, -50%) scale(1.1);
+    animation: sun-move 12s ease-in-out infinite alternate;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.85;
+}
+
+@keyframes sun-move {
+    0% {
+        left: 15%;
+        top: 80%;
+        filter: blur(24px) brightness(1.05);
+        opacity: 0.7;
+    }
+    30% {
+        left: 35%;
+        top: 60%;
+        filter: blur(18px) brightness(1.12);
+        opacity: 0.85;
+    }
+    50% {
+        left: 50%;
+        top: 40%;
+        filter: blur(12px) brightness(1.18);
+        opacity: 1;
+    }
+    70% {
+        left: 65%;
+        top: 60%;
+        filter: blur(18px) brightness(1.12);
+        opacity: 0.85;
+    }
+    100% {
+        left: 85%;
+        top: 80%;
+        filter: blur(24px) brightness(1.05);
+        opacity: 0.7;
+    }
+}
+
+/* 在base.html的style标签中添加 */
+.markdown-content {
+    line-height: 1.6;
+}
+
+.markdown-content strong {
+    font-weight: bold;
+    color: #f97316; /* 使用您的主题色 */
+}
+
+.markdown-content em {
+    font-style: italic;
+    color: #eab308; /* 使用您的主题色 */
+}
+
+.markdown-content ul {
+    list-style-type: disc;
+    padding-left: 1.5em;
+    margin: 0.5em 0;
+}
+
+.markdown-content li {
+    margin: 0.3em 0;
+}
+
+.markdown-content code {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 0.2em 0.4em;
+    border-radius: 0.25em;
+    font-family: monospace;
+}
+
+.markdown-content pre {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 1em;
+    border-radius: 0.5em;
+    overflow-x: auto;
+    margin: 0.5em 0;
+}
+
+.markdown-content pre code {
+    background-color: transparent;
+    padding: 0;
+}
+
+.markdown-content blockquote {
+    border-left: 4px solid #f97316;
+    margin: 0.5em 0;
+    padding-left: 1em;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.markdown-content a {
+    color: #f97316;
+    text-decoration: underline;
+}
+
+.markdown-content a:hover {
+    color: #ea580c;
+}
+    </style>
+</head>
+<body class="bg-primary text-white min-h-screen">
+    <nav class="p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="/" class="text-3xl md:text-5xl font-extrabold tracking-wide">YooooohNing</a>
+            <div class="space-x-4">
+                <a href="/" class="hover:text-sunset font-extrabold">Home</a>
+                <a href="/about" class="hover:text-sunset font-extrabold">About</a>
+                <a href="/photography" class="hover:text-sunset font-extrabold">Photography</a>
+                <a href="/skills" class="hover:text-sunset font-extrabold">Skills</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="mx-auto px-2 py-8 w-full max-w-screen-2xl">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="mt-auto p-4 text-center">
+        <p>&copy; 2025 YoohNing's Website. All rights reserved.</p>
+    </footer>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

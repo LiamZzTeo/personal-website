@@ -1,0 +1,23 @@
+[package]
+name = "personal-website"
+version = "0.1.0"
+edition = "2024"
+default-run = "personal-website"
+
+[dependencies]
+actix-web = "4.4"
+actix-files = "0.6"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tera = "1.19"
+tokio = { version = "1.0", features = ["full"] }
+env_logger = "0.10"
+log = "0.4"
+sqlx = { version = "0.7", features = ["runtime-tokio", "sqlite", "chrono"] }
+anyhow = "1.0"
+bcrypt = "0.15"
+dotenv = "0.15"
+rand = "0.8"
+base64 = "0.21"
+jsonwebtoken = "9.2"
+chrono = { version = "0.4", features = ["serde"] }

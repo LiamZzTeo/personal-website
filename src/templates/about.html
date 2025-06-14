@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}About Me - YoohNing{% endblock %}
+
+{% block content %}
+<div class="gradient-bg rounded-lg p-8 flex flex-col md:flex-row items-center gap-8">
+    <img src="/static/images/avatar.jpg" alt="Avatar" class="w-40 h-40 rounded-full shadow-lg border-4 border-sunset animate-avatar-pop">
+    <div>
+        <h1 class="text-4xl font-bold mb-4">Hi, I'm YooooohNing</h1>
+        <p class="text-lg leading-relaxed mb-4">Full Stack Developer | Photographer | Music Producer<br>
+        <br>
+        Gaming Enthusiast × Anime Lover × Web3 Knowledge Miner × Nature Enthusiast </p>
+        <div class="flex space-x-4 mt-4">
+            <a href="liam_zhang77@foxmail.com" class="text-sky hover:underline flex items-center">
+                <span class="mr-1">✉️</span>Email
+            </a>
+            <a href="https://github.com/LiamZzTeo" target="_blank" class="text-sunset hover:underline flex items-center">
+                <span class="mr-1">🐙</span>GitHub
+            </a>
+            <a href="https://www.instagram.com/yoohning/" target="_blank" class="text-pink-500 hover:underline flex items-center">
+                <span class="mr-1">📸</span>Instagram
+            </a>
+            <a href="https://space.bilibili.com/386148044?spm_id_from=333.1387.0.0" target="_blank" class="text-blue-400 hover:underline flex items-center">
+                <span class="mr-1">📺</span>Bilibili
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- RAG聊天组件 -->
+<!-- RAG聊天组件 -->
+<div class="mt-8 gradient-bg rounded-lg p-6">
+    <h2 class="text-2xl font-bold mb-4">和我聊天</h2>
+    <!-- 修改chat-container的样式，添加flex布局 -->
+    <div id="chat-container" class="bg-white/10 rounded-lg p-4 h-[400px] flex flex-col mb-4">
+        <!-- 添加一个包装div来处理滚动 -->
+        <div id="chat-messages" class="space-y-4 overflow-y-auto flex-1 pr-2">
+            <!-- 消息将在这里动态添加 -->
+        </div>
+    </div>
+    <div class="flex gap-2">
+        <input type="text" id="chat-input" 
+               class="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-2 focus:outline-none focus:border-sunset"
+               placeholder="问我任何问题...">
+        <button id="send-button" 
+                class="bg-sunset text-white px-6 py-2 rounded-lg hover:bg-sunset/80 transition-colors">
+            发送
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 头像弹跳动画
+document.querySelector('.animate-avatar-pop').animate([
+    { transform: 'scale(0.8)' },
+    { transform: 'scale(1.1)' },
+    { transform: 'scale(1)' }
+], {
+    duration: 800,
+    easing: 'ease-out'
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const chatContainer = document.getElementById('chat-container');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatInput = document.getElementById('chat-input');
+    const sendButton = document.getElementById('send-button');
+
+    // 配置marked选项
+    marked.setOptions({
+        breaks: true,  // 支持换行
+        gfm: true,     // 支持GitHub风格的Markdown
+        headerIds: false,  // 禁用标题ID
+        mangle: false,     // 禁用标题ID混淆
+        sanitize: false    // 允许HTML标签
+    });
+
+        // 平滑滚动到底部
+    function scrollToBottom() {
+        chatMessages.scrollTo({
+            top: chatMessages.scrollHeight,
+            behavior: 'smooth'
+        });
+    }
+
+    // 添加消息到聊天窗口
+    function addMessage(content, isUser = false) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
+        
+        const messageBubble = document.createElement('div');
+        messageBubble.className = `max-w-[80%] rounded-lg p-3 ${
+            isUser ? 'bg-sunset text-white' : 'bg-white/20 text-white'
+        }`;
+
+        if (isUser) {
+            // 用户消息直接显示文本
+            messageBubble.textContent = content;
+        } else {
+            // AI消息使用Markdown渲染
+            messageBubble.className += ' markdown-content';
+            messageBubble.innerHTML = marked.parse(content);
+        }
+        
+        messageDiv.appendChild(messageBubble);
+        chatMessages.appendChild(messageDiv);
+        // 使用 requestAnimationFrame 确保在DOM更新后滚动
+        requestAnimationFrame(() => {
+            scrollToBottom();
+        });
+    }
+
+    // 监听输入框的输入事件，自动调整高度
+    chatInput.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    // 发送消息
+    async function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        // 添加用户消息
+        addMessage(message, true);
+        chatInput.value = '';
+
+        // 添加加载状态
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'flex justify-start';
+        loadingDiv.innerHTML = '<div class="bg-white/20 text-white rounded-lg p-3 message-typing">思考中...</div>';
+        chatMessages.appendChild(loadingDiv);
+
+        try {
+            // 发送到后端
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Accept': 'application/json; charset=utf-8'
+                },
+                body: JSON.stringify({ query: message })
+            });
+
+            // 移除加载状态
+            chatMessages.removeChild(loadingDiv);
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.response || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (!data.response) {
+                throw new Error('服务器返回空响应');
+            }
+
+            // 添加AI响应
+            addMessage(data.response);
+        } catch (error) {
+            console.error('Error:', error);
+            // 移除加载状态（如果还存在）
+            if (loadingDiv.parentNode === chatMessages) {
+                chatMessages.removeChild(loadingDiv);
+            }
+            // 显示具体的错误信息
+            addMessage(`抱歉，发生错误：${error.message}`);
+        }
+    }
+
+    // 事件监听
+    sendButton.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            sendMessage();
+        }
+    });
+
+    const style = document.createElement('style');
+    style.textContent = `
+        #chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        #chat-messages::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        #chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        #chat-messages::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .message-typing {
+            display: inline-block;
+            animation: typing 1s infinite;
+        }
+        @keyframes typing {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // 添加欢迎消息
+    addMessage('你好！我是YoohNing的AI助手。你可以问我任何关于YoohNing的问题，比如他的技能、经历、兴趣爱好等。');
+});
+</script>
+{% endblock %}
